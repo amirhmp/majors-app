@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>اولویت‌بندی رشته‌ها</title>
+<script>try{var t=localStorage.getItem('majors_theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -14,17 +15,29 @@
   --g1:#e0f2e9;--g1t:#1c6b43;--g2:#e1ecfb;--g2t:#1f5aa6;--g3:#fdebd9;--g3t:#a15a12;--g4:#f1e4fa;--g4t:#7b3aa5;--gx:#eceef3;--gxt:#555e72;
 }
 @media (prefers-color-scheme:dark){
-  :root{--bg:#12151c;--card:#1b1f29;--text:#e8ebf3;--muted:#9099ae;--line:#2b3140;
+  :root:not([data-theme="light"]){--bg:#12151c;--card:#1b1f29;--text:#e8ebf3;--muted:#9099ae;--line:#2b3140;
   --accent:#8b86ff;--accent-soft:#262a45;--warn:#3a3416;--warn-line:#6b5d1c;--danger:#ff6b78;
-  --g1:#17382a;--g1t:#7fdcaa;--g2:#172a44;--g2t:#8dbcf5;--g3:#42301a;--g3t:#f0b778;--g4:#31213e;--g4t:#d3a4f2;--gx:#272c39;--gxt:#aab2c5}
+  --g1:#17382a;--g1t:#7fdcaa;--g2:#172a44;--g2t:#8dbcf5;--g3:#42301a;--g3t:#f0b778;--g4:#31213e;--g4t:#d3a4f2;--gx:#272c39;--gxt:#aab2c5;color-scheme:dark}
 }
+:root[data-theme="dark"]{--bg:#12151c;--card:#1b1f29;--text:#e8ebf3;--muted:#9099ae;--line:#2b3140;
+  --accent:#8b86ff;--accent-soft:#262a45;--warn:#3a3416;--warn-line:#6b5d1c;--danger:#ff6b78;
+  --g1:#17382a;--g1t:#7fdcaa;--g2:#172a44;--g2t:#8dbcf5;--g3:#42301a;--g3t:#f0b778;--g4:#31213e;--g4t:#d3a4f2;--gx:#272c39;--gxt:#aab2c5;color-scheme:dark}
+:root[data-theme="light"]{color-scheme:light}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:'Vazirmatn',system-ui,sans-serif;line-height:1.7}
 .wrap{max-width:1100px;margin:0 auto;padding:24px 16px 64px}
 header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
 h1{font-size:1.5rem;margin:0;font-weight:700}
 .sub{color:var(--muted);font-size:.85rem;margin:2px 0 0}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.switch{display:inline-flex;align-items:center;gap:6px;cursor:pointer;direction:ltr;user-select:none;position:relative}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch .track{width:44px;height:24px;border-radius:99px;background:var(--line);position:relative;transition:.2s}
+.switch .knob{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.2s}
+.switch input:checked+.track{background:var(--accent)}
+.switch input:checked+.track .knob{transform:translateX(20px)}
+.switch input:focus-visible+.track{outline:2px solid var(--accent);outline-offset:2px}
+.switch .ico{font-size:1rem;width:1.3em;text-align:center}
 button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--text);padding:7px 14px;border-radius:10px;transition:.15s}
 button:hover{border-color:var(--accent);color:var(--accent)}
 button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -77,6 +90,11 @@ input:invalid[name=code]:not(:placeholder-shown){outline:2px solid var(--danger)
       <p class="sub">برای کپی، روی کد رشته کلیک کنید · برای جابجایی، ردیف را با ⠿ بکشید · تغییرات خودکار ذخیره می‌شود</p>
     </div>
     <div class="actions">
+      <label class="switch" title="تغییر تم (روشن / تیره)">
+        <input type="checkbox" id="themeSwitch" role="switch" aria-label="تم تیره">
+        <span class="track"><span class="knob"></span></span>
+        <span class="ico" id="themeIcon">☀️</span>
+      </label>
       <button class="primary" id="export">⬇ خروجی اکسل</button>
       <button id="import">⬆ ورود از اکسل</button>
       <input type="file" id="importFile" accept=".xlsx,.xls" hidden>
@@ -284,6 +302,21 @@ importFile.onchange=async()=>{
   save();render();refreshTypes();
   toast(fa(rows.length)+' رشته وارد شد');
 };
+
+// theme switch
+const THEME_KEY='majors_theme';
+const darkMQ=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):{matches:false};
+const themeSw=document.getElementById('themeSwitch'),themeIcon=document.getElementById('themeIcon');
+const isDark=()=>{const t=document.documentElement.dataset.theme;return t?t==='dark':darkMQ.matches};
+function syncTheme(){const d=isDark();themeSw.checked=d;themeIcon.textContent=d?'🌙':'☀️'}
+themeSw.onchange=()=>{
+  const t=themeSw.checked?'dark':'light';
+  document.documentElement.dataset.theme=t;
+  try{localStorage.setItem(THEME_KEY,t)}catch(e){}
+  syncTheme();
+};
+if(darkMQ.addEventListener)darkMQ.addEventListener('change',syncTheme);
+syncTheme();
 
 render();
 </script>
