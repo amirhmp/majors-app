@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>اولویت‌بندی رشته‌ها</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f6fa;--card:#fff;--text:#1d2433;--muted:#6b7488;--line:#e5e8f0;
+  --accent:#4f46e5;--accent-soft:#eef0ff;--warn:#fff7d1;--warn-line:#f3dc6b;--danger:#d93a4a;
+  --g1:#e0f2e9;--g1t:#1c6b43;--g2:#e1ecfb;--g2t:#1f5aa6;--g3:#fdebd9;--g3t:#a15a12;--g4:#f1e4fa;--g4t:#7b3aa5;--gx:#eceef3;--gxt:#555e72;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#12151c;--card:#1b1f29;--text:#e8ebf3;--muted:#9099ae;--line:#2b3140;
+  --accent:#8b86ff;--accent-soft:#262a45;--warn:#3a3416;--warn-line:#6b5d1c;--danger:#ff6b78;
+  --g1:#17382a;--g1t:#7fdcaa;--g2:#172a44;--g2t:#8dbcf5;--g3:#42301a;--g3t:#f0b778;--g4:#31213e;--g4t:#d3a4f2;--gx:#272c39;--gxt:#aab2c5}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Vazirmatn',system-ui,sans-serif;line-height:1.7}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 64px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+h1{font-size:1.5rem;margin:0;font-weight:700}
+.sub{color:var(--muted);font-size:.85rem;margin:2px 0 0}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--text);padding:7px 14px;border-radius:10px;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{opacity:.9;color:#fff}
+button.ghost-danger:hover{border-color:var(--danger);color:var(--danger)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.add{padding:14px;display:grid;grid-template-columns:repeat(6,1fr) auto;gap:8px;margin-bottom:16px;align-items:end}
+.add label{display:flex;flex-direction:column;font-size:.75rem;color:var(--muted);gap:3px}
+input,select{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);width:100%;min-width:0}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th{background:var(--accent-soft);font-weight:500;font-size:.82rem;text-align:right;padding:10px 12px;color:var(--muted);white-space:nowrap}
+td{padding:9px 12px;border-top:1px solid var(--line);font-size:.92rem;vertical-align:middle}
+tr.warn td{background:var(--warn)}
+tr.warn td:first-child{box-shadow:inset -3px 0 var(--warn-line)}
+tr.sortable-ghost td{opacity:.35;background:var(--accent-soft)}
+tr.sortable-chosen td{background:var(--accent-soft)}
+.handle{cursor:grab;color:var(--muted);user-select:none;font-size:1.1rem;text-align:center;width:36px;touch-action:none}
+.handle:active{cursor:grabbing}
+.rank{width:52px;color:var(--muted);font-variant-numeric:tabular-nums}
+.badge{display:inline-block;padding:1px 10px;border-radius:99px;font-size:.78rem;white-space:nowrap}
+.g1{background:var(--g1);color:var(--g1t)}.g2{background:var(--g2);color:var(--g2t)}
+.g3{background:var(--g3);color:var(--g3t)}.g4{background:var(--g4);color:var(--g4t)}.gx{background:var(--gx);color:var(--gxt)}
+.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;letter-spacing:.5px;direction:ltr;display:inline-block;cursor:pointer;
+  padding:2px 10px;border-radius:8px;background:var(--accent-soft);color:var(--accent);border:1px dashed transparent;user-select:none}
+.code:hover{border-color:var(--accent)}
+.code.copied{background:#16a34a;color:#fff}
+.del{border:none;background:none;color:var(--muted);padding:4px 8px;font-size:1.05rem}
+.del:hover{color:var(--danger)}
+.note{padding:12px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:.82rem;display:flex;gap:8px;align-items:center}
+.note i{display:inline-block;width:14px;height:14px;background:var(--warn);border:1px solid var(--warn-line);border-radius:4px}
+.empty{padding:32px;text-align:center;color:var(--muted)}
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,30px);background:#1d2433;color:#fff;padding:8px 18px;border-radius:10px;opacity:0;pointer-events:none;transition:.25s;font-size:.9rem}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:820px){.add{grid-template-columns:1fr 1fr}.add button{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>اولویت‌بندی رشته‌ها</h1>
+      <p class="sub">برای کپی، روی کد رشته کلیک کنید · برای جابجایی، ردیف را با ⠿ بکشید · تغییرات خودکار ذخیره می‌شود</p>
+    </div>
+    <div class="actions">
+      <button class="primary" id="export">⬇ خروجی اکسل</button>
+      <button class="ghost-danger" id="reset">بازنشانی به فایل اصلی</button>
+    </div>
+  </header>
+
+  <form class="card add" id="addForm" autocomplete="off">
+    <label>نام رشته<input name="name" required></label>
+    <label>کد رشته<input name="code" required inputmode="numeric"></label>
+    <label>شهر<input name="city" required></label>
+    <label>دوره<input name="type" list="types" required></label>
+    <label>خوابگاه<input name="dorm"></label>
+    <label>گروه اولویت<select name="group"></select></label>
+    <button class="primary" type="submit">+ افزودن</button>
+    <datalist id="types"></datalist>
+  </form>
+
+  <div class="card">
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th></th><th>رتبه</th><th>گروه اولویت</th><th>نام رشته</th><th>کد رشته</th><th>شهر</th><th>دوره</th><th>وضعیت خوابگاه</th><th></th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="note"><i></i> ردیف‌های زردرنگ: خوانایی دست‌خط کم بوده؛ لطفاً با عکس اصلی مطابقت دهید.</div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script src="data.js"></script>
+<script src="vendor/Sortable.min.js"></script>
+<script src="vendor/xlsx.full.min.js"></script>
+<script>
+const KEY='majors_state_v1';
+const GROUPS=['۱ - شیراز (روزانه + شهریه‌پرداز)','۲ - روزانه (به ترتیب نزدیکی به شیراز)','۳ - شهریه‌پرداز','۴ - غیرانتفاعی'];
+const gcls=g=>{const n=(g||'').trim()[0];return {'۱':'g1','۲':'g2','۳':'g3','۴':'g4'}[n]||'gx'};
+const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const uid=()=>Math.random().toString(36).slice(2,10);
+
+let rows=load();
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(KEY));if(Array.isArray(s))return s}catch(e){}
+  return fresh();
+}
+function fresh(){return window.DEFAULT_DATA.map(r=>({...r,id:uid()}))}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(rows))}catch(e){}}
+
+const tbody=document.getElementById('tbody');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function render(){
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="9" class="empty">جدول خالی است.</td></tr>';return}
+  tbody.innerHTML=rows.map((r,i)=>`
+    <tr data-id="${r.id}" class="${r.warn?'warn':''}">
+      <td class="handle" title="بکشید">⠿</td>
+      <td class="rank">${fa(i+1)}</td>
+      <td><span class="badge ${gcls(r.group)}">${esc(r.group)}</span></td>
+      <td>${esc(r.name)}</td>
+      <td><span class="code" data-code="${esc(r.code)}" title="کلیک برای کپی">${esc(r.code)}</span></td>
+      <td>${esc(r.city)}</td>
+      <td>${esc(r.type)}</td>
+      <td>${esc(r.dorm)}</td>
+      <td><button class="del" data-del="${r.id}" title="حذف">✕</button></td>
+    </tr>`).join('');
+}
+
+let tt;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1500)}
+async function copy(text){
+  try{await navigator.clipboard.writeText(text)}
+  catch(e){const a=document.createElement('textarea');a.value=text;a.style.position='fixed';a.style.opacity=0;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}
+}
+
+tbody.addEventListener('click',async e=>{
+  const c=e.target.closest('.code');
+  if(c){await copy(c.dataset.code);c.classList.add('copied');setTimeout(()=>c.classList.remove('copied'),700);toast('کد '+c.dataset.code+' کپی شد');return}
+  const d=e.target.closest('[data-del]');
+  if(d){const r=rows.find(x=>x.id===d.dataset.del);if(r&&confirm('رشته «'+r.name+'» حذف شود؟')){rows=rows.filter(x=>x.id!==r.id);save();render()}}
+});
+
+Sortable.create(tbody,{
+  handle:'.handle',animation:150,ghostClass:'sortable-ghost',chosenClass:'sortable-chosen',
+  onEnd(){
+    const order=[...tbody.querySelectorAll('tr[data-id]')].map(t=>t.dataset.id);
+    const map=new Map(rows.map(r=>[r.id,r]));
+    rows=order.map(id=>map.get(id));
+    save();render();
+  }
+});
+
+// add form
+const form=document.getElementById('addForm');
+form.group.innerHTML=GROUPS.map(g=>`<option>${g}</option>`).join('');
+function refreshTypes(){document.getElementById('types').innerHTML=[...new Set(rows.map(r=>r.type))].map(t=>`<option value="${esc(t)}">`).join('')}
+refreshTypes();
+form.addEventListener('submit',e=>{
+  e.preventDefault();
+  const f=Object.fromEntries(new FormData(form));
+  rows.push({id:uid(),group:f.group,name:f.name.trim(),code:f.code.trim(),city:f.city.trim(),type:f.type.trim(),dorm:(f.dorm||'').trim()});
+  save();render();refreshTypes();
+  form.name.value=form.code.value='';form.name.focus();
+  toast('رشته اضافه شد (انتهای جدول)');
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+});
+
+document.getElementById('reset').onclick=()=>{
+  if(confirm('همه تغییرات پاک و جدول به حالت اولیه برمی‌گردد. مطمئنید؟')){rows=fresh();save();render();refreshTypes()}
+};
+
+// export
+document.getElementById('export').onclick=()=>{
+  const head=['رتبه','گروه اولویت','نام رشته','کد رشته','شهر','دوره','وضعیت خوابگاه'];
+  const aoa=[head,...rows.map((r,i)=>[i+1,r.group,r.name,r.code,r.city,r.type,r.dorm||''])];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  // code as text
+  rows.forEach((r,i)=>{const c=ws['D'+(i+2)];if(c){c.t='s';c.v=String(r.code)}});
+  ws['!cols']=[{wch:7},{wch:36},{wch:24},{wch:12},{wch:14},{wch:22},{wch:22}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'اولویت‌بندی');
+  wb.Workbook={Views:[{RTL:true}]};
+  XLSX.writeFile(wb,'majors_prioritized.xlsx');
+  toast('فایل اکسل ساخته شد');
+};
+
+render();
+</script>
+</body>
+</html>
